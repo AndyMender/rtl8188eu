@@ -1611,21 +1611,15 @@ static int rtw_wx_get_essid(struct net_device *dev,
 	if ((check_fwstate(pmlmepriv, _FW_LINKED)) ||
 	    (check_fwstate(pmlmepriv, WIFI_ADHOC_MASTER_STATE))) {
 		len = pcur_bss->Ssid.SsidLength;
-
-		wrqu->essid.length = len;
-
 		memcpy(extra, pcur_bss->Ssid.Ssid, len);
-
-		wrqu->essid.flags = 1;
 	} else {
-		ret = -1;
-		goto exit;
+		len = 0;
+		*extra = 0;
 	}
+	wrqu->essid.length = len;
+	wrqu->essid.flags = 1;
 
 exit:
-
-	
-
 	return ret;
 }
 
@@ -3162,7 +3156,7 @@ static int rtw_p2p_get_go_device_address(struct net_device *dev,
 	uint p2pielen = 0, attr_contentlen = 0;
 	u8 attr_content[100] = {0x00};
 
-	u8 go_devadd_str[17 + 10] = {0x00};
+	u8 go_devadd_str[100 + 10] = {0x00};
 	/*  +10 is for the str "go_devadd =", we have to clear it at wrqu->data.pointer */
 
 	/*	Commented by Albert 20121209 */
@@ -3219,7 +3213,7 @@ static int rtw_p2p_get_go_device_address(struct net_device *dev,
 	if (!blnMatch)
 		sprintf(go_devadd_str, "\n\ndev_add = NULL");
 	else
-		sprintf(go_devadd_str, "\n\ndev_add =%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",
+		sprintf(go_devadd_str, "\ndev_add =%.2X:%.2X:%.2X:%.2X:%.2X:%.2X",
 			attr_content[0], attr_content[1], attr_content[2], attr_content[3], attr_content[4], attr_content[5]);
 
 	if (copy_to_user(wrqu->data.pointer, go_devadd_str, 10 + 17))
@@ -5597,7 +5591,7 @@ static int rtw_hostapd_ioctl(struct net_device *dev, struct iw_point *p)
 		ret = rtw_ioctl_acl_remove_sta(dev, param, p->length);
 		break;
 	default:
-		DBG_88E("Unknown hostapd request: %d\n", param->cmd);
+		pr_info("Unknown hostapd request: %d\n", param->cmd);
 		ret = -EOPNOTSUPP;
 		break;
 	}
